@@ -1,7 +1,7 @@
 ---
 name: skills-git-management
 description: "Manage Hermes Agent skills with Git/GitHub — version control, selective tracking, SSH auth setup, repo creation, and sync workflow. Covers local skills directory structure, .gitignore strategy, and push workflow."
-version: 2.4.0
+version: 2.5.0
 author: Hermes Agent
 tags: [git, github, skills, version-control, backup, devops]
 triggers:
@@ -214,8 +214,58 @@ curl -s "https://api.github.com/search/repositories?q=hermes+skill+OR+hermes-age
 - 技能总览表格（分类 | 数量 | 领域）
 
 ## 技能总览 / Skill Catalog
-- 按分类列出每个 skill 及其描述
-- 格式：表格（skill 名 | 描述）或分类子标题
+
+### 模式 A — 功能分组（推荐，用户偏好）
+
+按**协作流水线**分组展示，每个 skill 配角色详情表。适合 5-15 个技能的中等仓库。
+
+```markdown
+### 📚 知识管理流水线
+
+> 一句话说明这组技能共同实现的目标。
+
+```
+skill-A       ← 做什么
+    ↕
+skill-B       ← 做什么
+```
+
+| Skill | 在此流水线中的角色 |
+|-------|-------------------|
+| [`skill-a`](skill-a/) | 🔄 入口——做什么 & 配合谁 |
+| [`skill-b`](skill-b/) | 🧹 后处理——做什么 & 配合谁 |
+
+#### `skill-a` — 中文名（角色说明）
+
+| 项目 | 说明 |
+|------|------|
+| **做什么** | 一句话核心功能 |
+| **什么时候用** | 触发场景 |
+| **上下游** | <kbd>上游</kbd> 依赖什么 → <kbd>下游</kbd> 产出什么 |
+| **触发词** | `触发词1`、`触发词2` |
+| **不做什么** | 边界说明，避免预期偏差 |
+```
+
+每个角色表字段说明：
+
+| 字段 | 内容要求 |
+|------|---------|
+| **做什么** | 一句话核心功能，不含触发词 |
+| **什么时候用** | 具体的触发场景描述 |
+| **上下游** | 该 skill 依赖什么、产出什么 |
+| **触发词** | 2-3 个简短中文词，用 ` · ` 分隔 |
+| **不做什么** | 边界说明，让用户知道这个 skill 不该用于什么 |
+
+### 模式 B — 按分类平铺（传统）
+
+适合大量 skill（20+）的仓库，保持简洁：
+
+```markdown
+| Skill | 描述 |
+|-------|------|
+| [`skill-a`](skill-a/) | 一句话描述 |
+| [`skill-b`](skill-b/) | 一句话描述 |
+```
 
 ## 安装指南 / Installation
 - 完整克隆
@@ -234,6 +284,10 @@ curl -s "https://api.github.com/search/repositories?q=hermes+skill+OR+hermes-age
 ```
 
 > ✨ 公开仓库的 README 建议用中文为主 + 英文术语/标题双语，方便国内用户也服务国际读者。
+>
+> ✨ 触发词最佳实践：每个 skill 的触发词用 2-3 个简短中文词（如 `智能归档`、`agent环境备份`），不同 skill 之间不重叠。触发词写在 SKILL.md 的 frontmatter `triggers:` 字段和 README 角色表中的「触发词」行，两端保持一致。避免长句(>`用git/github做项目管理`)或模糊单字(>`归档`)。
+>
+> 📄 功能分组模板见 `templates/README-grouped.md`，复制后按需修改即可。
 
 ### 8. 首次推送
 

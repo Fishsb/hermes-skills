@@ -1,7 +1,7 @@
 ---
 name: skill-optimization
 description: 智能归档流程的内联优化层 — ① scan 阶段同步扫描已用 skills 生成优化建议随推送一起展示；② archive 阶段在 smart-archive.py 内联提取知识写入 Wiki 后删会话
-version: 3.0.0
+version: 4.0.0
 author: Hermes Agent
 license: MIT
 triggers:
@@ -136,15 +136,27 @@ tags: ["<分类>", "archived", "auto-extracted"]
 
 ## 类别映射规则
 
-| 会话主题 | Wiki 目标目录 |
-|---------|-------------|
-| Hermes 配置、工具排障、API 配置、插件 | `wiki/工具/` |
-| WSL、系统维护、C盘清理 | `wiki/环境/` |
-| 自动化工作流、文档处理 | `wiki/工作流/` |
-| 技术调研、GitHub 项目、研究报告 | `wiki/项目/` |
-| Agent 规则、记忆策略、交互规范 | `wiki/配置/` |
-| Skill 开发记录 | `wiki/skill/` |
-| 通用概念、知识点 | `wiki/概念/` |
+> 详细组织规范参见 `skill_view(name='skill-optimization', file_path='references/kb-organization-rules.md')`
+
+### 目录选择矩阵
+
+| 会话主题 | 目标目录 | 反例（不放这里） |
+|---------|---------|----------------|
+| Hermes 配置、工具排障、API 配置、插件、工具安装 | `wiki/工具/` | 工作流方法、环境安装 |
+| WSL、系统维护、C盘清理、环境迁移 | `wiki/环境/` | 具体工具的配置细节 |
+| 自动化工作流、文档处理、审计流程、工程方法论 | `wiki/工作流/` | 具体工具排障 |
+| 技术调研、GitHub 项目、研究报告、竞品分析、生态推荐 | `wiki/项目/` | 归档的会话原始提取 |
+| Agent 规则、Profile 配置、记忆策略、交互规范、索引、备份 | `wiki/配置/` | 工具层面的配置细节 |
+| Skill 备份、开发记录 | `wiki/skill/` | 非 skill 的配置备份 |
+| 通用概念、跨领域知识点 | `wiki/概念/` | 操作指南 |
+| 医药健康知识 | `wiki/医学/` | 非医学内容 |
+| 所有 `auto-extracted` 会话提取 | `wiki/记忆/会话归档/` | 内容目录（禁止写入） |
+
+### 关键约束
+
+- **`auto-extracted` 文件必须写入 `记忆/会话归档/`**，禁止进入任何内容目录
+- 移入 `记忆/会话归档/` 后 tags 中的旧分类名改为 `"会话归档"`
+- 非 auto-extracted 的 `superseded`/`closed` 文件按主题归入对应内容目录
 
 ---
 
@@ -175,3 +187,9 @@ tags: ["<分类>", "archived", "auto-extracted"]
 - [ ] 提取失败时不阻塞删除 Hermes 原会话（但会输出错误信息）
 - [ ] Skill Factory 建议只到 `pending_confirmation`，不自动 patch
 - [ ] 旧 staging 队列不动，新归档不走 staging
+- [ ] **归档后自检** — 按需加载 `references/kb-organization-rules.md` 验证：
+  - [ ] 文件写入正确目录（auto-extracted 不进内容目录）
+  - [ ] 文件名与内容/文件夹匹配
+  - [ ] 移动过的文件标签已同步更新
+  - [ ] 全库互链索引中的旧路径已修复
+  - [ ] 所在目录的 📂 索引不需要加 `file.folder` 过滤
