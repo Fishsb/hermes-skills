@@ -1,0 +1,15 @@
+# Hermes 框架系统文件
+.hub/
+.bundled_manifest
+.curator_state
+.usage.json
+.usage.json.lock
+
+# Python 缓存
+__pycache__/
+*.pyc
+
+# 操作系统
+.DS_Store
+Thumbs.db
+*.log
