@@ -1,7 +1,7 @@
 ---
 name: skills-git-management
 description: "Manage Hermes Agent skills with Git/GitHub — version control, selective tracking, SSH auth setup, repo creation, and sync workflow. Covers local skills directory structure, .gitignore strategy, and push workflow."
-version: 2.5.0
+version: 2.6.0
 author: Hermes Agent
 tags: [git, github, skills, version-control, backup, devops]
 triggers:
@@ -314,7 +314,38 @@ git commit -m "update: [简要描述变更]"
 git push
 ```
 
-### 10. 从远端恢复
+### 10. 推送到公开仓库前的隐私审查 🔒
+
+> 仓库设为 Public 前，必须做一次隐私扫描。一旦推送，历史无法撤回（除非 force push 重写）。
+
+**扫描清单：**
+
+```bash
+cd "$APPDATA/../Local/hermes/skills"
+
+# 1. 检查 tracked 文件中是否含路径/用户名
+grep -rniE "$(whoami)|$USERNAME|C:\\\\Users\\\\[^\\\\]+" $(git ls-files) --include="*.md" 2>/dev/null | grep -v ".gitignore\|README.md"
+
+# 2. 检查 API Key / Token / 密码字面值（非 ${VAR} 占位符）
+grep -rniE "sk-[a-zA-Z0-9]{20,}|api.?key[=:].{8,}|secret[=:].{8,}|token[=:].{8,}|password[=:].{8,}" $(git ls-files) 2>/dev/null
+
+# 3. 检查个人画像类信息（真名、邮箱、手机、地址等）
+grep -rniE "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}" $(git ls-files) --include="*.md" 2>/dev/null
+grep -rniE "1[3-9][0-9]{9}" $(git ls-files) --include="*.md" 2>/dev/null
+```
+
+**分类评估：**
+
+| 发现类型 | 风险 | 处理方式 |
+|---------|------|---------|
+| 路径中的用户名（`C:\Users\lk\`、`D:\lk\`） | 低 — 技术仓库中常见 | 可留，或替换为 `$HOME` |
+| API Key / Token 字面值 | 🔴 极高 — 立即撤销该 key | force push 清除历史后替换为 `${VAR}` |
+| 邮箱/手机/地址 | 🟡 中 — 建议清理 | 替换占位符后重新提交 |
+| 个人偏好/习惯/履历 | 🟡 中 — 视用户意愿 | 评估是否暴露过多隐私 |
+
+> 如果发现已推送的内容含敏感信息，参考「历史清理需要 force push」pitfall 处理。
+
+### 11. 从远端恢复
 
 ```bash
 cd "$APPDATA/../Local/hermes/skills"
@@ -462,6 +493,7 @@ git push
 - **公钥/私有选择**：如果想分享给社区，建议设为 **Public**（公开）；仅个人备份则用 Private
 - **推送被拒**：检查是否用了正确的远端 URL：`git remote -v`，确认是 SSH 格式 `git@github.com:User/repo.git`
 - **公开仓库文档不足**：公开 repo 必须有完整 README（技能总览+安装指南+相关资源），否则别人拿到也无法使用。推送前调研社区类似仓库的文档模式，参考 `references/related-community-repos.md`
+- **公开仓库隐私泄露**：文件路径中的用户名（`C:\Users\lk\`）、API Key 字面值、个人信息（邮箱/手机/地址）容易被忽视。推送到 Public 仓库前必须执行隐私扫描（见步骤 10）。历史已有泄露时，参考「历史清理需要 force push」处理。
 - **`.gitignore` 路径匹配陷阱**：`.gitignore` 中不带前导 `/` 的路径模式会匹配**任意层级**的目录。例如 `references/` 会排除 skills 所有子目录中名为 `references` 的文件夹（如 `devops/agent-migration-backup/references/`）。**必须用 `/references/`（前导斜杠）才只匹配根目录**，或用完整路径如 `path/to/specific/references/` 做精确排除
 - **`git add -A` 会重添已删除文件**：使用 `git rm --cached` 从索引移除文件后，**不要用 `git add -A` 或 `git add --all`**，否则会重新添加所有仍在磁盘上的文件。应改为：显式指定要添加的路径 `git add specific/path/`，或用 `git add .` 配合完整的 `.gitignore` 过滤
 - **历史清理需要 force push**：如果错误的文件已经被推送，用以下流程重写历史：
@@ -483,7 +515,11 @@ git push
 
 ## 验证
 
-推送后确认仓库状态健康：
+推送后确认仓库状态健康（公开仓库额外加 [x]）：
+
+- [ ] 推送前已执行隐私审查（步骤 10），无敏感信息泄露
+- [ ] 远端与本地一致 — `git status` → `nothing to commit, working tree clean`
+- [ ] 远端分支可达 — `git branch -r` 显示 `origin/main`
 ```bash
 # 检查远端与本地一致
 git status

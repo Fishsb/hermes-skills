@@ -1,5 +1,8 @@
 # 2026-06-16 Context / Memory Compression Recall
 
+> **上下文**：[主 SKILL.md →](../SKILL.md) | **索引**：[所有参考文件](./_index.md)
+> **同级文件**：[执行笔记](./20260616-context-slimdown-execution.md) | [234 模式](./20260616-context-slimdown-234-pattern.md) | [初始执行记录](./compression-example-history.md)
+
 ## Trigger
 
 Use this reference when a user asks to inspect current context/token usage, previous compression work, memory/profile/SOUL/skill slimming, or knowledge-base compression rules.
@@ -53,3 +56,7 @@ A previous recovery flow temporarily used `config.yaml.bak-*` as if it represent
 - `20260616_023951_c00da8` — highest-priority correction: old config backups are historical only; use recent/current state.
 - `20260616_023711_fb8399` — earlier broad recovery investigation; useful for context, but some conclusions were superseded.
 - `cron_db5090d04b33_20260616_020947` — Skill Factory pending note about MiMo exclusion conditions for low-complexity tasks.
+
+---
+
+**关联参考**：[全局索引](./_index.md) | [SKILL.md →](../SKILL.md) | [执行笔记](./20260616-context-slimdown-execution.md) | [234 模式](./20260616-context-slimdown-234-pattern.md)

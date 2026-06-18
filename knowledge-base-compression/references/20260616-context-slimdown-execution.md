@@ -1,5 +1,8 @@
 # 2026-06-16 Context Slimdown Execution Notes
 
+> **上下文**：[主 SKILL.md →](../SKILL.md) | **索引**：[所有参考文件](./_index.md)
+> **同级文件**：[234 模式](./20260616-context-slimdown-234-pattern.md) | [会话召回地图](./20260616-context-compression-recall.md)
+
 ## What happened
 
 A context-token audit found three high-impact bloat sources:
@@ -61,6 +64,10 @@ Safe sequence:
 - `USER.md` contains the Obsidian pointer.
 - The Obsidian archive contains both D14-D19 and Desktop GUI bug details.
 
-## Pitfall
+### Pitfall
 
 The CLI command `hermes memory --help` only exposed provider setup/status/off/reset, not fine-grained built-in-memory replace/remove operations. In this runtime, the built-in memory source of truth was the file pair under `AppData/Local/hermes/memories/`. If a dedicated memory tool is unavailable, file editing is acceptable only after backup and read-back verification.
+
+---
+
+**关联参考**：[全局索引](./_index.md) | [SKILL.md →](../SKILL.md) | [234 模式](./20260616-context-slimdown-234-pattern.md) | [会话召回地图](./20260616-context-compression-recall.md)

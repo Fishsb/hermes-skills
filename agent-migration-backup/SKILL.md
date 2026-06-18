@@ -1,7 +1,7 @@
 ---
 name: agent-migration-backup
 description: "Hermes Agent 环境备份与迁移 — agent环境备份、agent环境迁移、全量备份。覆盖配置/技能/脚本/cron/MCP/PLUR/记忆/规则一键迁移。"
-version: 3.2.0
+version: 3.3.0
 author: Hermes Agent
 triggers:
   - agent环境备份
@@ -141,9 +141,9 @@ cp -r backup/Obsidian/Hermes D:/lk/Obsidian/Hermes
 当用户说「全量备份」且**在当前电脑**时：
 
 0. **先运行 `hermes backup -q`** — 生成 quick snapshot 到 `state-snapshots/`，作为安全网。如果后续手动备份出错，可从 snapshot 恢复。
-1. 将 `C:/Users/lk/AppData/Local/hermes/` 同步到 `wiki/配置/Hermes迁移/hermes-runtime-no-sessions/`
+1. 将 `C:/Users/lk/AppData/Local/hermes/` 同步到 `wiki/配置/Hermes迁移/hermes-runtime-no-sessions/`。注意 git-bash (Windows) 无 `rsync`，使用 `find + cpio` 或 `cp --archive` 替代。exclude 列表: `sessions/`, `transcripts/`, `request_dump_*.json`, `state.db`, `hermes-agent/`, `node_modules/`, `__pycache__/`。
 2. 排除历史会话：`sessions/`、`transcripts/`、`request_dump_*.json`
-3. 导出 restore-notes：version/config/tools/skills/mcp/cron/profile/gateway/config-summary/env names/tree/size/exclusion/hash
+3. 导出 restore-notes（编号前缀 `01-version.txt` 至 `15-scripts.txt`，按标准顺序排列：version→config→env→tools→skills→mcp→cron→profiles→gateway→tree→size→exclusions→checksums→bin→scripts）。清理旧版无编号文件名。
 4. **更新 `wiki/配置/Hermes迁移/restore-manifest.md`** — 对照当前环境重新生成恢复状态清单（config 关键字段、.env 变量名、MEMORY.md 内容、skills 列表、cron 配置等）
 5. 更新 `wiki/配置/Hermes迁移/README.md` 的时间戳、自检结果和恢复说明
 6. 如知识库/skill 中有旧指针，统一改为指向 `Hermes迁移/README.md`
@@ -210,7 +210,7 @@ cp -r backup/Obsidian/Hermes D:/lk/Obsidian/Hermes
 
 1. 读取 `wiki/配置/Hermes迁移/restore-manifest.md`，获取备份时的目标状态
 2. 逐项审计：
-   - **Skills**: manifest 中 59 个 skill → `hermes skills list` 对比数量和名称 → 缺失的从备份复制
+   - **Skills**: manifest 中的 skill 目录列表 → `ls skills/` 对比目录数量和名称 → 缺失的从备份复制
    - **Config**: manifest 中 model/delegation/memory/compression → Python yaml 读取当前 config 对比 → 差异修复
    - **MCP**: manifest 中 mcp_servers → `hermes mcp list` 对比 → 缺失的用 `hermes mcp add` 添加
    - **Cron**: manifest 中智能归档配置 → `hermes cron list` 对比
@@ -372,6 +372,14 @@ Desktop 覆盖安装/更新可能清空或重置 `bin/` 目录。恢复后必须
 
 这一原则适用于所有文档类 task：补充说明、已知问题、边界情况都归入主文档，不要另起一篇。
 
+### 🚩 restore-notes 使用编号前缀保证排序
+
+restore-notes 文件名统一使用两位数字前缀（`01-version.txt` → `15-scripts.txt`），按标准顺序排列：version → config → env → tools → skills → mcp → cron → profiles → gateway → tree → size → exclusions → checksums → bin → scripts。Agent 生成时按此顺序输出，恢复时按此顺序逐项验证。不要使用无编号的描述性文件名（如 `hermes-config-summary.txt`），避免目录列表顺序混乱。
+
+### 🚩 Python yaml 在 git-bash (Windows) 环境下可能缺失
+
+恢复/审计流程中涉及 `Python yaml.safe_load` 对比 config.yaml 时，git-bash 的 Python 可能未安装 PyYAML 包（`ModuleNotFoundError: No module named 'yaml'`），此时应降级为 `grep` 分段提取关键字段对比，而非报错中止。在 Linux 或 WSL 环境、或安装 `pip install pyyaml` 后该问题不出现。判断方法：`python3 -c "import yaml" && echo OK || echo MISSING`。
+
 ## 必须手动处理的操作
 
 | 操作 | 说明 |
@@ -439,7 +447,7 @@ Agent 逐项检查（对照 restore-manifest.md）：
 | 检查 | 命令 | 预期 |
 |------|------|------|
 | 配置健康 | `hermes config check` | 无 ERROR |
-| Skills 数量 | `hermes skills list \| wc -l` | ≥ 50 |
+| Skills 数量 | `ls skills/*/ 2>/dev/null \\| wc -l` | 匹配 manifest 数量 |
 | MCP 服务器 | `hermes mcp list` | agent_browser 可用 |
 | 定时任务 | `hermes cron list` | 智能归档存在 |
 | 模型可用 | `hermes chat -q "你好"` | 正常回复 |

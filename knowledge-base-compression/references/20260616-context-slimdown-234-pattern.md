@@ -1,6 +1,10 @@
 # 2026-06-16 Context Slimdown 234 Pattern
 
-Session-derived pattern for Hermes context/token slimming after the user selected recommendation numbers `2/3/4` and intentionally did **not** select item `1`.
+> **上下文**：[主 SKILL.md →](../SKILL.md) | **索引**：[所有参考文件](./_index.md)
+> **同级文件**：[执行笔记](./20260616-context-slimdown-execution.md) | [会话召回地图](./20260616-context-compression-recall.md)
+> **派生自**：[初始执行记录](./compression-example-history.md)
+
+Session-derived pattern
 
 ## Durable lessons
 
@@ -27,3 +31,7 @@ Session-derived pattern for Hermes context/token slimming after the user selecte
 - Memory: 1842 chars → 1273 chars.
 - User Profile: 1168 chars → 610 chars.
 - Explicitly not changed: forced MiMo-first system prompt, because it was recommendation #1 and user selected only `234`.
+
+---
+
+**关联参考**：[全局索引](./_index.md) | [SKILL.md →](../SKILL.md) | [执行笔记](./20260616-context-slimdown-execution.md) | [会话召回地图](./20260616-context-compression-recall.md)

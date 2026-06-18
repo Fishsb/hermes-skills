@@ -1,6 +1,9 @@
 # 初始压缩执行记录（2026-06-14）
 
-首次执行 `knowledge-base-compression` skill 的完整记录。
+> **上下文**：[主 SKILL.md →](../SKILL.md) | **索引**：[所有参考文件](./_index.md)
+> **后续参考**：[234 模式](./20260616-context-slimdown-234-pattern.md)（由本记录派生）
+
+首次执行
 
 ## 压缩前状态
 
@@ -52,3 +55,7 @@
 - 如果是一次性历史记录 → 删
 - 如果与任务执行无关（预算/UI偏好） → 删
 - 如果对任何后续任务有潜在价值 → 保留
+
+---
+
+**关联参考**：[全局索引](./_index.md) | [SKILL.md →](../SKILL.md) | [234 模式](./20260616-context-slimdown-234-pattern.md)
