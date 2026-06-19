@@ -1,9 +1,11 @@
 ---
-name: skill-optimization
+|name: skill-optimization
 description: 智能归档流程的内联优化层 — ① scan 阶段同步扫描已用 skills 生成优化建议随推送一起展示；② archive 阶段在 smart-archive.py 内联提取知识写入 Wiki 后删会话
 version: 5.0.0
 author: Hermes Agent
 license: MIT
+source:
+  Skill Factory: 合并自 Hermes Hub 社区 skill community/hermes-skill-factory v1.0.0，原始路径已删除
 triggers:
   - 智能归档
   - 整理到知识库

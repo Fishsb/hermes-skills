@@ -56,7 +56,7 @@ knowledge-ingestion ──→ 知识库 ──→ knowledge-base-compression
 | **上下游** | <kbd>上游</kbd> 任何已结束的 Hermes 会话 → <kbd>下游</kbd> 知识库存档笔记 |
 | **触发词** | `智能归档`、`整理到知识库` |
 | **不做什么** | 不做去重和压缩——那是 `knowledge-base-compression` 的事 |
-| **📦 来源** | 自建（Agent 代建，内部 name: `skill-optimization`） |
+| **📦 来源** | 自建（Agent 代建，内部 name: `skill-optimization`），其中 Skill Factory 方法论合并自 Hermes 社区 skill `community/hermes-skill-factory`（原作者 v1.0.0），原始目录已删除，方法论收入 `references/skill-factory-methodology.md`。 |
 | **🔗 依赖** | 见下方⬇️ |
 
 **依赖详情：**
@@ -64,7 +64,7 @@ knowledge-ingestion ──→ 知识库 ──→ knowledge-base-compression
 | 依赖项 | 仓库状态 | 说明 |
 |--------|---------|------|
 | `cron-automation-patterns` | ✅ 本仓库内 | `devops/cron-automation-patterns/` — Hermes Cron 调度编排层，定义定时触发模式（每日/每小时智能归档）、任务生命周期管理（创建→暂停→清理）。<br>**来源**：本地自建（author: Hermes Agent），无外部社区仓库。 |
-| `Skill Factory` | ❌ 不存在社区仓库<br>✅ 方法论已合并到本仓库 | **实现原理**：归档会话 Skill 优化扫描框架。在 scan 阶段同步检查已使用的 skills 与实际工作流的匹配度，发现不匹配项时生成待确认的补丁建议随推送展示给用户。核心方法论已合并入本 skill 的 `references/skill-factory-methodology.md`。<br>**效果**：不安装不影响归档主体功能，只是 scan 阶段不再输出技能优化建议。 |
+| `Skill Factory` | ❌ 不存在社区仓库（已合并） | **来源**：原 Hermes Hub 社区 skill `community/hermes-skill-factory` v1.0.0（路径已删除）。核心方法论已合并入本 skill 的 `references/skill-factory-methodology.md`。<br>**功能**：归档会话 Skill 优化扫描框架。在 scan 阶段同步检查已使用的 skills 与实际工作流的匹配度，发现不匹配项时生成待确认的补丁建议随推送展示给用户。<br>**缺失影响**：归档主体功能不受影响，只是 scan 阶段不再输出技能优化建议。可参考已合并的方法论自行创建。 |
 | `hermes-agent-skill-authoring` | ✅ 本仓库内 | `software-development/hermes-agent-skill-authoring/` — Skill 编写规范指南，提供 SKILL.md frontmatter 格式标准、命名规范、最佳实践。<br>**来源**：本地自建（author: Hermes Agent），无外部社区仓库。 |
 
 #### `knowledge-base-compression` — 知识库压缩（后处理）
@@ -158,9 +158,11 @@ git sparse-checkout set knowledge-ingestion knowledge-base-compression
 本仓库以下依赖项**不在本仓库内**，经查询 GitHub **目前社区无公开仓库**。以下是每个依赖的**实现原理和影响说明**，方便你自行决定是否需要或自行创建替代：
 
 #### `Skill Factory`
+- **来源**：原 Hermes Hub 社区 skill `community/hermes-skill-factory` v1.0.0（原始路径已删除）。**无 GitHub 公开仓库**。
 - **原理**：归档会话 Skill 优化扫描框架。在智能归档的 scan 阶段同步执行：扫描本地 skills 列表 → 检查各 skill 的 `SKILL.md` 与实际工作流的匹配度 → 对不匹配项生成待确认的补丁建议 → 随归档推送展示给用户审批。
 - **在本仓库中的用途**：`knowledge-ingestion` 的 scan 阶段会调用 Skill Factory 方法生成技能优化建议。
-- **缺失影响**：归档主体功能不受影响，只是 scan 阶段不会输出技能优化建议。核心方法论已合并到本仓库 `knowledge-ingestion/references/skill-factory-methodology.md`，可参考实现。
+- **现状**：核心方法论已合并到本仓库 `knowledge-ingestion/references/skill-factory-methodology.md`，原始社区 skill 目录已删除。
+- **缺失影响**：归档主体功能不受影响，只是 scan 阶段不会输出技能优化建议。可参考已合并的方法论实现。
 - **自行实现要点**：在 scan 阶段添加 skills 目录扫描 → 对比 frontmatter 的 `related_skills` 与技能实际内容 → 输出差异报告。
 
 #### `skill-cleaner`
