@@ -23,6 +23,8 @@
 │  agent-migration-backup                     │
 │                                             │
 │  hermes-agent-skill-authoring (skill编写规范)│
+│                                             │
+│  segment-anything-model (SAM图像分割)       │
 │  skills-git-management (Git 管理)           │
 └─────────────────────────────────────────────┘
 ```
@@ -137,6 +139,23 @@ knowledge-ingestion ──→ 知识库 ──→ knowledge-base-compression
 | **不做什么** | 不备份 API Key 等敏感信息（那是 `agent-migration-backup` 的事） |
 | **📦 来源** | 自建（Agent 代建） |
 | **🔗 依赖** | 无（纯 Git 操作，仅需本机已安装 git） |
+
+---
+
+### 🖼️ AI 视觉
+
+> **目标**：封装开源视觉 AI 模型，提供开箱即用的图像分割能力。
+
+#### `segment-anything-model` — 图像分割 (SAM)
+
+| 项目 | 说明 |
+|------|------|
+| **做什么** | 基于 Meta AI 的 Segment Anything Model (SAM) 实现零样本图像分割，支持点选/框选/全图自动分割 |
+| **什么时候用** | 需要从图片中分割特定物体 / 图像背景去除 / 物体轮廓提取 |
+| **触发词** | `分割图像`、`SAM`、`图像分割` |
+| **📦 来源** | 封装自 Facebook Research 开源项目，经本地调整优化 |
+| **🔗 原项目** | [`facebookresearch/segment-anything`](https://github.com/facebookresearch/segment-anything) · [`facebookresearch/segment-anything-2`](https://github.com/facebookresearch/segment-anything-2) |
+| **⚠️ 依赖** | 需安装 `segment-anything`、`torch>=1.7.0`、`transformers>=4.30.0` |
 
 ---
 
