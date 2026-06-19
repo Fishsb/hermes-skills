@@ -9,19 +9,22 @@
 
 ## 依赖总览 / Dependency Map
 
-本仓库只包含**自建 skill**。部分 skill 引用其他 Hermes skill 作为关联依赖，这些**不在本仓库内**。下方每个 skill 条目中标注了依赖项的状态和原理。
+本仓库包含**自建 skill** 及其主要依赖。部分依赖项仍不在本仓库内，详见下方标注。
 
 ```
-┌─ 本仓库内 ───────────────────────────┐
-│                                       │
-│  knowledge-ingestion (skill-optimization)
-│    ↓ 输出到知识库                      │
-│  knowledge-base-compression           │
-│    ↓ 引用了部分索引                    │
-│  agent-migration-backup               │
-│                                       │
-│  skills-git-management (无依赖)       │
-└───────────────────────────────────────┘
+┌─ 本仓库内 ─────────────────────────────────┐
+│                                             │
+│  cron-automation-patterns                   │
+│    ↓ 定时调度                               │
+│  knowledge-ingestion (skill-optimization)   │
+│    ↓ 输出到知识库                            │
+│  knowledge-base-compression                 │
+│    ↓ 引用了部分索引                          │
+│  agent-migration-backup                     │
+│                                             │
+│  hermes-agent-skill-authoring (skill编写规范)│
+│  skills-git-management (Git 管理)           │
+└─────────────────────────────────────────────┘
 ```
 
 ---
@@ -60,9 +63,9 @@ knowledge-ingestion ──→ 知识库 ──→ knowledge-base-compression
 
 | 依赖项 | 仓库状态 | 说明 |
 |--------|---------|------|
-| `cron-automation-patterns` | ❌ 不存在社区仓库 | **实现原理**：编排层，定义 Hermes Cron 定时任务的触发模式和调度策略（每日/每小时智能归档触发）。规定 Cron 作业的生命周期管理（创建、暂停、清理历史记录）。本 skill 是其内联执行端（内视图），cron-automation-patterns 是调度端（外视图）。<br>**效果**：不安装时，定时归档无法自动触发，需手动通过触发词「智能归档」执行。 |
+| `cron-automation-patterns` | ✅ 本仓库内 | `devops/cron-automation-patterns/` — Hermes Cron 调度编排层，定义定时触发模式（每日/每小时智能归档）、任务生命周期管理（创建→暂停→清理）。<br>**来源**：本地自建（author: Hermes Agent），无外部社区仓库。 |
 | `Skill Factory` | ❌ 不存在社区仓库<br>✅ 方法论已合并到本仓库 | **实现原理**：归档会话 Skill 优化扫描框架。在 scan 阶段同步检查已使用的 skills 与实际工作流的匹配度，发现不匹配项时生成待确认的补丁建议随推送展示给用户。核心方法论已合并入本 skill 的 `references/skill-factory-methodology.md`。<br>**效果**：不安装不影响归档主体功能，只是 scan 阶段不再输出技能优化建议。 |
-| `hermes-agent-skill-authoring` | ✅ Hermes 系统自带 | **实现原理**：Hermes 框架内置的 skill 编写指导规范，Agent 创建新 skill 时参考其 SKILL.md 格式标准。<br>**效果**：随 Hermes 安装自带，无需单独获取。 |
+| `hermes-agent-skill-authoring` | ✅ 本仓库内 | `software-development/hermes-agent-skill-authoring/` — Skill 编写规范指南，提供 SKILL.md frontmatter 格式标准、命名规范、最佳实践。<br>**来源**：本地自建（author: Hermes Agent），无外部社区仓库。 |
 
 #### `knowledge-base-compression` — 知识库压缩（后处理）
 
@@ -152,23 +155,13 @@ git sparse-checkout set knowledge-ingestion knowledge-base-compression
 
 ### 🔧 外部依赖详解
 
-本仓库的技能引用了以下外部 Hermes skill。经查询 GitHub，**目前社区无公开仓库**。以下是每个依赖的**实现原理和影响说明**，方便你自行决定是否需要或自行创建替代：
-
-#### `cron-automation-patterns`
-- **原理**：Hermes Cron 调度编排层。定义 Cron 任务的触发模式（固定间隔/特定时间/条件触发）、任务生命周期（创建→暂停→清理历史）、及多 Cron 作业的冲突避免策略。
-- **在本仓库中的用途**：`knowledge-ingestion` 用它做定时触发入口（外视图），智能归档本身是内联执行端（内视图）。
-- **缺失影响**：归档的主体功能完全正常，只是无法自动定时运行。可手动通过触发词「智能归档」执行，或在 Hermes Cron 配置中手动创建 Cron 任务替代。
-- **自行实现要点**：在 Hermes `config.yaml` 的 `cron` 段注册定时任务 → 任务中调用 Agent 执行 `mimo: 智能归档` 即可。
+本仓库以下依赖项**不在本仓库内**，经查询 GitHub **目前社区无公开仓库**。以下是每个依赖的**实现原理和影响说明**，方便你自行决定是否需要或自行创建替代：
 
 #### `Skill Factory`
 - **原理**：归档会话 Skill 优化扫描框架。在智能归档的 scan 阶段同步执行：扫描本地 skills 列表 → 检查各 skill 的 `SKILL.md` 与实际工作流的匹配度 → 对不匹配项生成待确认的补丁建议 → 随归档推送展示给用户审批。
 - **在本仓库中的用途**：`knowledge-ingestion` 的 scan 阶段会调用 Skill Factory 方法生成技能优化建议。
 - **缺失影响**：归档主体功能不受影响，只是 scan 阶段不会输出技能优化建议。核心方法论已合并到本仓库 `knowledge-ingestion/references/skill-factory-methodology.md`，可参考实现。
 - **自行实现要点**：在 scan 阶段添加 skills 目录扫描 → 对比 frontmatter 的 `related_skills` 与技能实际内容 → 输出差异报告。
-
-#### `hermes-agent-skill-authoring`
-- **原理**：Hermes 框架内置的 skill 编写规范文档，提供 SKILL.md 的 frontmatter 字段说明、命名规范、最佳实践。Agent 在创建新 skill 时自动参考该规范确保格式标准化。
-- **获取方式**：随 Hermes 安装自带，无需单独安装。如未找到，重装 Hermes 或在 Hermes Hub 搜索即可。
 
 #### `skill-cleaner`
 - **原理**：（待实现）预期功能为扫描 skills 目录，检测以下冗余：从未被加载的 skill、功能重叠的 skill、超过 N 天未更新的 skill、不再满足前置条件的 skill。生成清理建议列表或自动归档到备份目录。
