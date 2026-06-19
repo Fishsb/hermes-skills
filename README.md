@@ -9,28 +9,18 @@
 
 ## 依赖总览 / Dependency Map
 
-本仓库只包含**自建 skill**。部分 skill 依赖其他 Hermes skill 或外部工具，这些**不在本仓库内**，需要单独获取。
+本仓库只包含**自建 skill**。部分 skill 引用其他 Hermes skill 作为关联依赖，这些**不在本仓库内**。下方每个 skill 条目中标注了依赖项的状态和原理。
 
 ```
 ┌─ 本仓库内 ───────────────────────────┐
 │                                       │
-│  knowledge-ingestion                  │
-│    ↓ 依赖 ↓                          │
+│  knowledge-ingestion (skill-optimization)
+│    ↓ 输出到知识库                      │
 │  knowledge-base-compression           │
-│    ↓ 依赖 ↓                          │
+│    ↓ 引用了部分索引                    │
 │  agent-migration-backup               │
 │                                       │
 │  skills-git-management (无依赖)       │
-└───────────────────────────────────────┘
-
-┌─ 外部依赖（需用户自行获取） ──────────┐
-│                                       │
-│  lk-memory-index          ← 已删除   │
-│  cron-automation-patterns ← 社区 skill│
-│  Skill Factory            ← 社区 skill│
-│  skill-cleaner            ← 未实现   │
-│  hermes-agent-skill-authoring ← 系统  │
-│  @mimo-ai/cli             ← npm 包   │
 └───────────────────────────────────────┘
 ```
 
@@ -63,9 +53,16 @@ knowledge-ingestion ──→ 知识库 ──→ knowledge-base-compression
 | **上下游** | <kbd>上游</kbd> 任何已结束的 Hermes 会话 → <kbd>下游</kbd> 知识库存档笔记 |
 | **触发词** | `智能归档`、`整理到知识库` |
 | **不做什么** | 不做去重和压缩——那是 `knowledge-base-compression` 的事 |
-| **📦 来源** | 自建（Agent 代建） |
-| **🔗 依赖** | 需以下 skill 配合（均**不在本仓库**，见下方指引）：<br>`cron-automation-patterns` — 定时触发归档<br>`Skill Factory` — skill 自动生成框架<br>`hermes-agent-skill-authoring` — Hermes 系统自带 skill |
-| **⚠️ 外部指引** | `cron-automation-patterns` 与 `Skill Factory` 需从社区或自行创建。<br>`hermes-agent-skill-authoring` 随 Hermes 安装自带。 |
+| **📦 来源** | 自建（Agent 代建，内部 name: `skill-optimization`） |
+| **🔗 依赖** | 见下方⬇️ |
+
+**依赖详情：**
+
+| 依赖项 | 仓库状态 | 说明 |
+|--------|---------|------|
+| `cron-automation-patterns` | ❌ 不存在社区仓库 | **实现原理**：编排层，定义 Hermes Cron 定时任务的触发模式和调度策略（每日/每小时智能归档触发）。规定 Cron 作业的生命周期管理（创建、暂停、清理历史记录）。本 skill 是其内联执行端（内视图），cron-automation-patterns 是调度端（外视图）。<br>**效果**：不安装时，定时归档无法自动触发，需手动通过触发词「智能归档」执行。 |
+| `Skill Factory` | ❌ 不存在社区仓库<br>✅ 方法论已合并到本仓库 | **实现原理**：归档会话 Skill 优化扫描框架。在 scan 阶段同步检查已使用的 skills 与实际工作流的匹配度，发现不匹配项时生成待确认的补丁建议随推送展示给用户。核心方法论已合并入本 skill 的 `references/skill-factory-methodology.md`。<br>**效果**：不安装不影响归档主体功能，只是 scan 阶段不再输出技能优化建议。 |
+| `hermes-agent-skill-authoring` | ✅ Hermes 系统自带 | **实现原理**：Hermes 框架内置的 skill 编写指导规范，Agent 创建新 skill 时参考其 SKILL.md 格式标准。<br>**效果**：随 Hermes 安装自带，无需单独获取。 |
 
 #### `knowledge-base-compression` — 知识库压缩（后处理）
 
@@ -77,8 +74,15 @@ knowledge-ingestion ──→ 知识库 ──→ knowledge-base-compression
 | **触发词** | `压缩知识库`、`知识库去重`、`知识库维护` |
 | **不做什么** | 不负责归档新内容——那是 `knowledge-ingestion` 的事 |
 | **📦 来源** | 自建（作者 `lk`） |
-| **🔗 依赖** | `skill-optimization` ✅ 本仓库（即 `knowledge-ingestion`）<br>`lk-memory-index` ❌ 已删除，从本仓库移除<br>`skill-cleaner` ❌ 未实现/未找到 |
-| **⚠️ 外部指引** | `skill-cleaner` 暂无可用实现，不影响主体功能。<br>`lk-memory-index` 原为环境索引 skill，已归档不再维护。如缺失该依赖，压缩流程会尝试跳过相关步骤。 |
+| **🔗 依赖** | 见下方⬇️ |
+
+**依赖详情：**
+
+| 依赖项 | 仓库状态 | 说明 |
+|--------|---------|------|
+| `skill-optimization` | ✅ 本仓库内 | 即本仓库的 `knowledge-ingestion`。两者配合形成"写入 → 压缩"流水线。 |
+| `lk-memory-index` | ❌ 已从本仓库删除 | **实现原理**：极简（~2KB）环境指针索引 skill，记录 Hermes 关键路径、Provider 配置、工具集位置、知识库挂载点。压缩流程加载它以快速定位环境资源，避免硬编码。<br>**效果**：不安装时，压缩流程会尝试跳过相关索引步骤，改用路径猜测或硬编码替代，不影响核心压缩功能。 |
+| `skill-cleaner` | ❌ 不存在社区仓库 | **实现原理**：预期功能——扫描 skills 目录中的废弃/重复/长时间未使用的 skill，生成清理建议或自动归档到备份目录。<br>**效果**：暂无可用实现。不安装不影响 knowledge-base-compression 的主体压缩功能。如后续社区出现，推荐配合使用。 |
 
 > 💡 **两者配合**：`knowledge-ingestion` 不断写入新内容 → 知识库逐渐膨胀 → `knowledge-base-compression` 定期瘦身。缺一不可。
 
@@ -110,8 +114,8 @@ knowledge-ingestion ──→ 知识库 ──→ knowledge-base-compression
 | **依赖** | Obsidian 知识库中 `wiki/配置/Hermes迁移/` 目录存放备份基准 |
 | **注意事项** | 已合并原 `hermes-env-backup` 功能，含备份清单速查表和简化恢复脚本 |
 | **📦 来源** | 自建（Agent 代建） |
-| **🔗 依赖** | `lk-memory-index` ❌ 已删除，从本仓库移除 |
-| **⚠️ 外部指引** | 恢复流程中会调用以下外部工具（各工具独立，按需安装）：<br>`npx @mimo-ai/cli` — MimoCode CLI（需 `npm`）<br>`npx @wangshunnn/bilibili-mcp-server` — B站 MCP（可选）<br>`uvx douyin-mcp-server` — 抖音 MCP（可选）<br>`npm install -g @plur-ai/mcp` — PLUR MCP（可选）<br>参考文档中列出的恢复步骤会按需提示安装，非强制。 |
+| **🔗 依赖** | `lk-memory-index` ❌ 已从本仓库删除（见上方说明） |
+| **⚠️ 外部工具** | 恢复流程中会调用以下外部工具（各工具独立，按需安装）：<br>`npx @mimo-ai/cli` — MimoCode CLI（需 `npm`）<br>`npx @wangshunnn/bilibili-mcp-server` — B站 MCP（可选）<br>`uvx douyin-mcp-server` — 抖音 MCP（可选）<br>`npm install -g @plur-ai/mcp` — PLUR MCP（可选）<br>参考文档中列出的恢复步骤会按需提示安装，非强制。 |
 
 ---
 
@@ -146,19 +150,41 @@ git sparse-checkout set knowledge-ingestion knowledge-base-compression
 
 每个 skill 是独立目录，内含 `SKILL.md` + 可选 `references/`。复制到 Hermes skills 路径下即可自动加载。
 
-### 🔧 外部依赖获取指引
+### 🔧 外部依赖详解
 
-本仓库的部分 skill 依赖以下外部资源，需**单独获取**：
+本仓库的技能引用了以下外部 Hermes skill。经查询 GitHub，**目前社区无公开仓库**。以下是每个依赖的**实现原理和影响说明**，方便你自行决定是否需要或自行创建替代：
 
-| 依赖项 | 类型 | 获取方式 |
-|--------|------|---------|
-| `cron-automation-patterns` | Hermes Skill | 社区创建或自行编写（暂无稳定来源） |
-| `Skill Factory` | Hermes Skill | 社区创建或自行编写（暂无稳定来源） |
-| `hermes-agent-skill-authoring` | Hermes Skill | Hermes 安装自带，无需单独获取 |
-| `skill-cleaner` | Hermes Skill | 未实现，暂无可用版本 |
-| `lk-memory-index` | Hermes Skill | 已从本仓库移除，不再维护 |
-| `@mimo-ai/cli` | npm 包 | `npm install -g @mimo-ai/cli` |
-| Obsidian vault | 外部系统 | 自建 Obsidian 知识库，路径可在 skill 内配置 |
+#### `cron-automation-patterns`
+- **原理**：Hermes Cron 调度编排层。定义 Cron 任务的触发模式（固定间隔/特定时间/条件触发）、任务生命周期（创建→暂停→清理历史）、及多 Cron 作业的冲突避免策略。
+- **在本仓库中的用途**：`knowledge-ingestion` 用它做定时触发入口（外视图），智能归档本身是内联执行端（内视图）。
+- **缺失影响**：归档的主体功能完全正常，只是无法自动定时运行。可手动通过触发词「智能归档」执行，或在 Hermes Cron 配置中手动创建 Cron 任务替代。
+- **自行实现要点**：在 Hermes `config.yaml` 的 `cron` 段注册定时任务 → 任务中调用 Agent 执行 `mimo: 智能归档` 即可。
+
+#### `Skill Factory`
+- **原理**：归档会话 Skill 优化扫描框架。在智能归档的 scan 阶段同步执行：扫描本地 skills 列表 → 检查各 skill 的 `SKILL.md` 与实际工作流的匹配度 → 对不匹配项生成待确认的补丁建议 → 随归档推送展示给用户审批。
+- **在本仓库中的用途**：`knowledge-ingestion` 的 scan 阶段会调用 Skill Factory 方法生成技能优化建议。
+- **缺失影响**：归档主体功能不受影响，只是 scan 阶段不会输出技能优化建议。核心方法论已合并到本仓库 `knowledge-ingestion/references/skill-factory-methodology.md`，可参考实现。
+- **自行实现要点**：在 scan 阶段添加 skills 目录扫描 → 对比 frontmatter 的 `related_skills` 与技能实际内容 → 输出差异报告。
+
+#### `hermes-agent-skill-authoring`
+- **原理**：Hermes 框架内置的 skill 编写规范文档，提供 SKILL.md 的 frontmatter 字段说明、命名规范、最佳实践。Agent 在创建新 skill 时自动参考该规范确保格式标准化。
+- **获取方式**：随 Hermes 安装自带，无需单独安装。如未找到，重装 Hermes 或在 Hermes Hub 搜索即可。
+
+#### `skill-cleaner`
+- **原理**：（待实现）预期功能为扫描 skills 目录，检测以下冗余：从未被加载的 skill、功能重叠的 skill、超过 N 天未更新的 skill、不再满足前置条件的 skill。生成清理建议列表或自动归档到备份目录。
+- **在本仓库中的用途**：`knowledge-base-compression` 将其列为关联 skill，期望在压缩知识库的同时也清理冗余技能。
+- **缺失影响**：不影响 knowledge-base-compression 的主体压缩功能。如需此功能，可手动删除不需要的 skill 目录。
+- **自行实现要点**：遍历 skills 目录 → 检查 .usage.json 中的加载记录 → 比对 SKILL.md 的 triggers 关键词是否在当前配置中被调用 → 输出建议列表。
+
+#### `lk-memory-index`
+- **原理**：极简（~2KB）环境指针索引。记录了：Hermes 关键路径（config.yaml / skills / memory 位置）、Provider 列表及模型映射、工具集挂载点、知识库路径等。Agent 在运行时加载它即可获得环境全貌，无需长篇幅内存笔记。
+- **在本仓库中的用途**：`agent-migration-backup` 用它定位备份目标路径；`knowledge-base-compression` 用它快速找到知识库和 memory 文件。
+- **缺失影响**：备份和压缩流程会尝试跳过索引环节，使用硬编码路径或路径猜测替代。核心功能完整但可能遗漏非标准路径的自定义配置。
+- **自行实现要点**：创建一个 SKILL.md，内容为当前环境的路径索引清单（JSON/YAML 格式），在 `references/` 中维护关键路径列表。首次运行备份或压缩时自动生成。
+
+#### `@mimo-ai/cli`（外部 npm 包）
+- **获取方式**：`npm install -g @mimo-ai/cli`
+- **用途**：MimoCode CLI 执行引擎，`agent-migration-backup` 的恢复流程中可选调用。
 
 ---
 
